@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  sam-example
+  
+  Sample SAM Template for sam-example
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 5
+    MemorySize: 128
+
+Parameters:
+    BaseUrlGoperigon: 
+      Type: String
+      Default: "/stg/news/base-url"
+    ApiKeyGoperigon: 
+      Type: String
+      Default: "/stg/news/api-key"  
+
+Resources:
+  FeaturedArticleFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: lambda/
+      Handler: bootstrap
+      Runtime: provided.al2
+      Architectures:
+        - x86_64
+      Events:
+        CatchAll:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /list
+            Method: GET
+      Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
+        Variables:
+          API_KEY: "d0f06d41-eb2d-4ded-91cd-856aa5786424"
+          BASE_URL: "https://api.goperigon.com/v1/all"
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: "Allow"
+              Action:
+                - "ssm:GetParameter"
+              Resource: !Sub 
+                - "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${parameterName}"
+                - parameterName: !Ref BaseUrlGoperigon
+            - Effect: "Allow"
+              Action:
+                - "ssm:GetParameter"
+              Resource: !Sub 
+                - "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${parameterName}"
+                - parameterName: !Ref ApiKeyGoperigon
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  FeaturedArticleAPI:
+    Description: "API Gateway endpoint URL for Prod environment for First Function."
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/list/"
+  FeaturedArticleFunction:
+    Description: "First Lambda Function ARN"
+    Value: !GetAtt FeaturedArticleFunction.Arn
+  FeaturedArticleFunctionIamRole:
+    Description: "Implicit IAM Role created for Hello World function."
+    Value: !GetAtt FeaturedArticleFunctionRole.Arn
