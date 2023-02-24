@@ -3,9 +3,10 @@ package application
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"news/domain"
 	"news/infrastructure"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGetFeaturedArticle(t *testing.T) {
@@ -24,7 +25,8 @@ func TestGetFeaturedArticle(t *testing.T) {
 	mockResponseGenerator.On("Generate", &articles).Return(nil)
 
 	sut := NewGetFeaturedArtcile(mockArticleRepository, mockArticleFinder, mockResponseGenerator)
-	err := sut.GetFeaturedArticle()
+	result, err := sut.GetFeaturedArticle()
 
 	assert.Nil(t, err)
+	assert.Equal(t, articles, *result)
 }
