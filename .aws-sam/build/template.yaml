@@ -1,0 +1,76 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'sam-example
+
+  Sample SAM Template for sam-example
+
+  '
+Globals:
+  Function:
+    Timeout: 5
+    MemorySize: 128
+Parameters:
+  BaseUrlGoperigon:
+    Type: String
+    Default: /stg/news/base-url
+  ApiKeyGoperigon:
+    Type: String
+    Default: /stg/news/api-key
+Resources:
+  FeaturedArticleFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: go1.x
+      SamResourceId: FeaturedArticleFunction
+    Properties:
+      CodeUri: FeaturedArticleFunction
+      Handler: bootstrap
+      Runtime: provided.al2
+      Architectures:
+      - x86_64
+      Events:
+        CatchAll:
+          Type: Api
+          Properties:
+            Path: /list
+            Method: GET
+      Environment:
+        Variables:
+          API_KEY: d0f06d41-eb2d-4ded-91cd-856aa5786424
+          BASE_URL: https://api.goperigon.com/v1/all
+      Policies:
+      - Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - ssm:GetParameter
+          Resource:
+            Fn::Sub:
+            - arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${parameterName}
+            - parameterName:
+                Ref: BaseUrlGoperigon
+        - Effect: Allow
+          Action:
+          - ssm:GetParameter
+          Resource:
+            Fn::Sub:
+            - arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${parameterName}
+            - parameterName:
+                Ref: ApiKeyGoperigon
+Outputs:
+  FeaturedArticleAPI:
+    Description: API Gateway endpoint URL for Prod environment for First Function.
+    Value:
+      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/list/
+  FeaturedArticleFunction:
+    Description: First Lambda Function ARN
+    Value:
+      Fn::GetAtt:
+      - FeaturedArticleFunction
+      - Arn
+  FeaturedArticleFunctionIamRole:
+    Description: Implicit IAM Role created for Hello World function.
+    Value:
+      Fn::GetAtt:
+      - FeaturedArticleFunctionRole
+      - Arn
